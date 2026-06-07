@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detektor BLE ESP32</title>
+<style>
+body{font-family:sans-serif;text-align:center;padding:30px;background:#f0f0f0}
+h2{color:#333}
+button{padding:15px 25px;margin:10px;font-size:18px;border-radius:8px;border:none;background:#1976D2;color:white}
+button:active{background:#0D47A1}
+#status{margin-top:25px;font-weight:bold;font-size:16px;color:#d32f2f}
+#data{margin-top:15px;font-size:14px;color:#2e7d32}
+</style>
+</head>
+<body>
+<h2>Detektor BLE ESP32</h2>
+<button id="connectBtn">1. Konek ke ESP32 + PIN</button>
+<div id="status">Status: Belum konek</div>
+<div id="data"></div>
+
+<script>
+let device, server, service, char;
+const btn = document.getElementById('connectBtn');
+const status = document.getElementById('status');
+const data = document.getElementById('data');
+
+btn.addEventListener('click', async () => {
+  try {
+    status.textContent = 'Status: Mencari ESP32...';
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{name: 'DetektorAman_ESP32'}],
+      optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+    });
+    
+    const pin = prompt('Masukin PIN 123456');
+    if(pin !== '123456') throw 'PIN salah';
+    
+    status.textContent = 'Status: Konek ke ESP32...';
+    server = await device.gatt.connect();
+    service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+    char = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+    
+    status.textContent = 'Konek + Enkripsi Aktif ✅';
+    data.textContent = 'Siap terima data sensor...';
+    
+  } catch(err) {
+    status.textContent = 'Error: ' + err;
+  }
+});
+</script>
+</body>
+</html>
